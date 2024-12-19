@@ -1,0 +1,1 @@
+# Aquí se encuentra el código para la placa de desarrollo ESP32 Seeed Wio Terminal
