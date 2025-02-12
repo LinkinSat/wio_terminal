@@ -7,7 +7,7 @@
 
 #define WIFI_SSID "LoRaAp"
 #define WIFI_PASS "estonotieneinternet"
-#define DATA_URL "http://192.168.1.69/api/data"
+#define DATA_URL "http://192.168.69.69/api/data"
 
 TFT_eSPI display = TFT_eSPI();
 static LCDBackLight backlight;
