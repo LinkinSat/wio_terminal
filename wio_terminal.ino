@@ -15,18 +15,14 @@ int sleepTime = 20000;
 unsigned long prevMillis;
 const long refreshInterval = 500;
 
-String gpsLat;
-String gpsLon;
 String alt;
 String temp;
 String press;
-String rads;
 
 HTTPClient client;
 
 void setup() {
 
-  client.setTimeout(100);
   pinMode(WIO_KEY_A, INPUT_PULLUP);
   pinMode(WIO_KEY_B, INPUT_PULLUP);
   pinMode(WIO_KEY_C, INPUT_PULLUP);
@@ -61,7 +57,7 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   display.setTextSize(3);
-  display.drawString("Datos cansat", 10, 10);
+  display.drawString("Datos LiNkInSaT", 10, 10);
   display.setTextWrap(true, true);
 
 }
@@ -69,7 +65,6 @@ void setup() {
 void loop() {
 
   handleTimeoutBtn();
-  
   unsigned long currentMillis = millis();
   if(currentMillis - prevMillis >= refreshInterval){
     prevMillis = currentMillis;
@@ -99,6 +94,7 @@ void loop() {
         backlight.setBrightness(backlight.getMaxBrightness());
       }
     }
+      Serial.println("Debug2");
       queryHTTPData();
       drawScreen();
     }
@@ -120,36 +116,37 @@ void handleTimeoutBtn(){
 
 void queryHTTPData(){
   client.begin(DATA_URL);
-  client.setTimeout(100);
-   if(client.GET() > 0){
-    StaticJsonDocument<50> doc;
+  client.setTimeout(50);
+  client.setConnectTimeout(50);
+  Serial.println("Debug3");
+  int httpcode = client.GET();
+  Serial.println(httpcode);
+   if(httpcode > 0){
     String payload = client.getString();
+    client.end();
+    DynamicJsonDocument doc(1024);
+    Serial.println("Debug4");
+    Serial.println("Debug5");
     DeserializationError error = deserializeJson(doc,payload);
+    Serial.println("Debug6");
+    Serial.println(error.c_str());
 
-    gpsLat = doc["gps"]["lat"].as<String>();
-    gpsLon = doc["gps"]["lon"].as<String>();
     alt = doc["alt"].as<String>();
     temp = doc["temp"].as<String>();
     press = doc["press"].as<String>();
-    rads = doc["rads"].as<String>();
   }else {
+    client.end();
     display.fillRect(0, 50, 320, 240, TFT_RED);
     display.setTextSize(3);
     display.setCursor(10, 125);
     display.println("Error al conectar con la API");
     return;
   }
-  client.end();
 }
 void drawScreen(){
-  gpsLat.replace("Lat: " ,"");
-  gpsLon.replace("Lon: ", "");
   display.setTextSize(2);
   display.fillRect(0, 50, 320, 240, TFT_PURPLE);
-  display.drawString("GPS: Latitud: " + gpsLat, 5, 70);
-  display.drawString("Longitud: " + gpsLon, 65, 94);
-  display.drawString("Altitud: " + alt, 5, 118);
-  display.drawString("Temperatura: " + temp, 5, 142);
-  display.drawString("Presion: " + press, 5, 164);
-  display.drawString("Radiacion: " + rads, 5, 188);
+  display.drawString("Altitud: " + alt, 5, 80);
+  display.drawString("Temperatura: " + temp, 5, 120);
+  display.drawString("Presion: " + press, 5, 160);
 }
